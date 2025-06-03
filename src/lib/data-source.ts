@@ -3,17 +3,17 @@ import 'reflect-metadata';
 
 import { Personne } from '@/entities/Personne';
 import { ProfilClient } from '@/entities/ProfilClient';
-import { ProfilEmploye } from '@/entities/ProfilEmploye';
-import { Forfait } from '@/entities/Forfait';
-import { Film } from '@/entities/Film';
-import { Genre } from '@/entities/Genre';
-import { Langue } from '@/entities/Langue';
-import { Pays } from '@/entities/Pays';
-import { Copie } from '@/entities/Copie';
-import { Location } from '@/entities/Location';
-import { LocationCopie } from '@/entities/LocationCopie';
-import { Adresse } from '@/entities/Adresse';
-import { FichePersonne } from '@/entities/FichePersonne';
+// import { ProfilEmploye } from '@/entities/ProfilEmploye';
+// import { Forfait } from '@/entities/Forfait';
+// import { Film } from '@/entities/Film';
+// import { Genre } from '@/entities/Genre';
+// import { Langue } from '@/entities/Langue';
+// import { Pays } from '@/entities/Pays';
+// import { Copie } from '@/entities/Copie';
+// import { Location } from '@/entities/Location';
+// import { LocationCopie } from '@/entities/LocationCopie';
+// import { Adresse } from '@/entities/Adresse';
+// import { FichePersonne } from '@/entities/FichePersonne';
 
 export const AppDataSource = new DataSource({
   type: 'oracle',
@@ -29,16 +29,16 @@ export const AppDataSource = new DataSource({
   entities: [
     Personne,
     ProfilClient,
-    ProfilEmploye,
-    Forfait,
-    Film,
-    Genre,
-    Langue,
-    Pays,
-    Copie,
-    Location,
-    LocationCopie,
-    Adresse,
-    FichePersonne,
+    // ProfilEmploye,
+    // Forfait,
+    // Film,
+    // Genre,
+    // Langue,
+    // Pays,
+    // Copie,
+    // Location,
+    // LocationCopie,
+    // Adresse,
+    // FichePersonne,
   ],
 });
