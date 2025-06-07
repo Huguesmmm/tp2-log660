@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import { authenticate } from "../lib/actions";
+import { authenticate } from "../app/lib/actions";
 
 export default function LoginForm() {
 	const [errorMessage, formAction, isPending] = useActionState(
