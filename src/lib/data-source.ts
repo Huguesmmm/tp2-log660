@@ -2,18 +2,18 @@ import { DataSource } from 'typeorm';
 import 'reflect-metadata';
 
 import { Personne } from '@/entities/Personne';
-import { ProfilClient } from '@/entities/ProfilClient';
-// import { ProfilEmploye } from '@/entities/ProfilEmploye';
-// import { Forfait } from '@/entities/Forfait';
-// import { Film } from '@/entities/Film';
-// import { Genre } from '@/entities/Genre';
-// import { Langue } from '@/entities/Langue';
-// import { Pays } from '@/entities/Pays';
-// import { Copie } from '@/entities/Copie';
-// import { Location } from '@/entities/Location';
-// import { LocationCopie } from '@/entities/LocationCopie';
-// import { Adresse } from '@/entities/Adresse';
-// import { FichePersonne } from '@/entities/FichePersonne';
+import { Forfait } from '@/entities/Forfait';
+import { Film } from '@/entities/Film';
+import { Genre } from '@/entities/Genre';
+import { Pays } from '@/entities/Pays';
+import { CopieFilm } from '@/entities/CopieFilm';
+import { Client } from '@/entities/Client';
+import { Employe } from '@/entities/Employe';
+import { Artiste } from '@/entities/Artiste';
+import { BandeAnnonce } from '@/entities/BandeAnnonce';
+import { CarteCredit } from '@/entities/CarteCredit';
+import { FilmActeur } from '@/entities/FilmActeur';
+import { Location } from '@/entities/Location';
 
 export const AppDataSource = new DataSource({
   type: 'oracle',
@@ -28,17 +28,17 @@ export const AppDataSource = new DataSource({
   logging: true,
   entities: [
     Personne,
-    ProfilClient,
-    // ProfilEmploye,
-    // Forfait,
-    // Film,
-    // Genre,
-    // Langue,
-    // Pays,
-    // Copie,
-    // Location,
-    // LocationCopie,
-    // Adresse,
-    // FichePersonne,
+    Client,
+    Employe,
+    CarteCredit,
+    Artiste,
+    BandeAnnonce,
+    Forfait,
+    Film,
+    FilmActeur,
+    CopieFilm,
+    Genre,
+    Pays,
+    Location,
   ],
 });
