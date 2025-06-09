@@ -1,34 +1,57 @@
-import 'reflect-metadata';
-import * as typeorm from 'typeorm';
-import type { ProfilClient } from './ProfilClient';
-// import { ProfilEmploye } from './ProfilEmploye';
+import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert } from 'typeorm';
+import type { Relation } from 'typeorm';
+import { Client } from './Client';
+import { Employe } from './Employe';
 
-@typeorm.Entity('PERSONNE') // ou 'PERSONNES' selon votre vraie table
+@Entity('PERSONNES')
 export class Personne {
-  @typeorm.PrimaryGeneratedColumn({ name: 'ID_PERSONNE' })
-  idPersonne: number;
+  @PrimaryColumn({ name: 'PERSONNE_ID', type: 'number' })
+  personneId: number;
 
-  @typeorm.Column({ name: 'PRENOM', length: 50 })
-  prenom: string;
-
-  @typeorm.Column({ name: 'NOM', length: 50 })
+  @Column({ name: 'NOM', length: 100 })
   nom: string;
 
-  @typeorm.Column({ name: 'COURRIEL', length: 100, unique: true })
+  @Column({ name: 'PRENOM', length: 100 })
+  prenom: string;
+
+  @Column({ name: 'COURRIEL', length: 100, unique: true })
   courriel: string;
 
-  @typeorm.Column({ name: 'NUM_TELEPHONE', length: 20, nullable: true })
-  numTelephone?: string;
+  @Column({ name: 'TELEPHONE', length: 20, nullable: true })
+  telephone?: string;
 
-  @typeorm.Column({ name: 'DATE_NAISSANCE', type: 'date' })
+  @Column({ name: 'DATE_NAISSANCE', type: 'date' })
   dateNaissance: Date;
 
-  @typeorm.Column({ name: 'ID_ADRESSE' })
-  idAdresse: number;
+  @Column({ name: 'NO_CIVIQUE', length: 20 })
+  noCivique: string;
 
-  @typeorm.OneToOne('ProfilClient', (profilClient: ProfilClient) => profilClient.personne)
-  profilClient: typeorm.Relation<ProfilClient>;
+  @Column({ name: 'RUE', length: 100 })
+  rue: string;
 
-  // @OneToOne(() => ProfilEmploye, profilEmploye => profilEmploye.personne)
-  // profilEmploye?: ProfilEmploye;
+  @Column({ name: 'VILLE', length: 100 })
+  ville: string;
+
+  @Column({ name: 'PROVINCE', length: 100 })
+  province: string;
+
+  @Column({ name: 'CODE_POSTAL', length: 10 })
+  codePostal: string;
+
+  // Relationships
+  @OneToOne(() => Client, (client) => client.personne)
+  client?: Relation<Client>;
+
+  @OneToOne(() => Employe, (employe) => employe.personne)
+  employe?: Relation<Employe>;
+
+  // Handle sequence manually if needed
+  @BeforeInsert()
+  async generateId() {
+    if (!this.personneId) {
+      // You'd implement sequence fetching here
+      // const result = await connection.query('SELECT seq_personne_id.NEXTVAL FROM DUAL');
+      // this.personneId = result[0].NEXTVAL;
+    }
+  }
 }

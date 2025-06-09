@@ -1,0 +1,41 @@
+import type { Relation } from 'typeorm';
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
+import { Client } from './Client';
+import { CopieFilm } from './CopieFilm';
+
+@Entity('LOCATIONS')
+export class Location {
+  @PrimaryColumn({ name: 'LOCATION_ID', type: 'number' })
+  locationId: number;
+
+  @Column({ name: 'CLIENT_ID', type: 'number' })
+  clientId: number;
+
+  @Column({ name: 'COPIE_ID', length: 20, unique: true })
+  copieId: string;
+
+  @Column({ name: 'DATE_LOCATION', type: 'date' })
+  dateLocation: Date;
+
+  @Column({ name: 'DATE_RETOUR_PREVUE', type: 'date', nullable: true })
+  dateRetourPrevue?: Date;
+
+  @Column({ name: 'DATE_RETOUR_REELLE', type: 'date', nullable: true })
+  dateRetourReelle?: Date;
+
+  // Relationships
+  @ManyToOne(() => Client, (client) => client.locations)
+  @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'clientId' })
+  client: Relation<Client>;
+
+  @OneToOne(() => CopieFilm, (copie) => copie.location)
+  @JoinColumn({ name: 'COPIE_ID', referencedColumnName: 'copieId' })
+  copieFilm: Relation<CopieFilm>;
+
+  @BeforeInsert()
+  async generateId() {
+    if (!this.locationId) {
+      // Handle seq_location_id.NEXTVAL
+    }
+  }
+}
