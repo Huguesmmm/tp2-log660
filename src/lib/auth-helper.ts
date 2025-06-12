@@ -1,7 +1,7 @@
 "use server";
 
+import { Client } from "@/entities/Client";
 import { AppDataSource } from "@/lib/data-source"
-import { ProfilClient } from "@/entities/ProfilClient"
 import { compare } from "bcrypt-ts"
 
 export async function validateCredentials(email: string, password: string) {
@@ -12,8 +12,8 @@ export async function validateCredentials(email: string, password: string) {
     }
 
     // Find user in database
-    const profilClientRepository = AppDataSource.getRepository(ProfilClient)
-    const profilClient = await profilClientRepository.findOne({
+    const clientRepository = AppDataSource.getRepository(Client)
+    const client = await clientRepository.findOne({
       where: {
         personne: {
           courriel: email,
@@ -22,21 +22,22 @@ export async function validateCredentials(email: string, password: string) {
       relations: ["personne"],
     })
 
-    if (!profilClient) {
+    if (!client) {
+      console.log('🔍 Pas de client trouvé pour cet email:', email);
       return null
     }
 
     // Verify password
     const passwordsMatch = await compare(
       password,
-      profilClient.motDePasseHash
+      client.motPasse
     )
 
     if (passwordsMatch) {
       return {
-        id: profilClient.idPersonne.toString(),
-        email: profilClient.personne.courriel,
-        name: `${profilClient.personne.prenom} ${profilClient.personne.nom}`,
+        id: client.clientId.toString(),
+        email: client.personne.courriel,
+        name: `${client.personne.prenom} ${client.personne.nom}`,
       }
     }
 

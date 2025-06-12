@@ -39,10 +39,10 @@ export class Personne {
   codePostal: string;
 
   // Relationships
-  @OneToOne(() => Client, (client) => client.personne)
+  @OneToOne('Client', (client: Client) => client.personne)
   client?: Relation<Client>;
 
-  @OneToOne(() => Employe, (employe) => employe.personne)
+  @OneToOne('Employe', (employe: Employe) => employe.personne)
   employe?: Relation<Employe>;
 
   // Handle sequence manually if needed

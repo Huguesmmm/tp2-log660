@@ -18,17 +18,17 @@ export class Client {
   forfaitCode: string;
 
   // Relationships
-  @OneToOne(() => Personne, (personne) => personne.client)
-  @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'personneId' })
+  @OneToOne('Personne', (personne: Personne) => personne.client)
+  @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'PERSONNE_ID' })
   personne: Relation<Personne>;
 
-  @ManyToOne(() => Forfait, (forfait) => forfait.clients)
+  @ManyToOne('Forfait', (forfait: Forfait) => forfait.clients)
   @JoinColumn({ name: 'FORFAIT_CODE', referencedColumnName: 'forfaitCode' })
   forfait: Relation<Forfait>;
 
-  @OneToOne(() => CarteCredit, (carte) => carte.client)
+  @OneToOne('CarteCredit', (carte: CarteCredit) => carte.client)
   carteCredit?: Relation<CarteCredit>;
 
-  @OneToMany(() => Location, (location) => location.client)
+  @OneToMany('Location', (location: Location) => location.client)
   locations?: Relation<Location[]>;
 }

@@ -87,8 +87,8 @@ export default function LoginForm() {
           <p className="mb-1 text-sm font-medium text-blue-800">
             Demo Credentials:
           </p>
-          <p className="text-sm text-blue-700">Email: user@nextmail.com</p>
-          <p className="text-sm text-blue-700">Password: 123456</p>
+          <p className="text-sm text-blue-700">Email: RobertCFlores21@gmail.com</p>
+          <p className="text-sm text-blue-700">Password: password123</p>
         </div>
       </CardContent>
     </Card>
