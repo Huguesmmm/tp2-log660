@@ -27,6 +27,8 @@ export async function validateCredentials(email: string, password: string) {
       return null
     }
 
+    console.log('🔍 password trouvé:', client.motPasse);
+
     // Verify password
     const passwordsMatch = await compare(
       password,
