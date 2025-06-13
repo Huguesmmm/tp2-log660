@@ -11,7 +11,7 @@ export class Pays {
   nom: string;
 
   // Relationships (inverse side of ManyToMany)
-  @ManyToMany(() => Film, (film) => film.pays)
+  @ManyToMany('Film', (film: Film) => film.pays)
   films?: Relation<Film[]>;
 
   @BeforeInsert()

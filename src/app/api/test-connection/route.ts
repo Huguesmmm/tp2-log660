@@ -11,7 +11,7 @@ export async function GET() {
       port: process.env.DB_PORT,
       serviceName: process.env.DB_SERVICE_NAME,
       username: process.env.DB_USERNAME,
-      schema: process.env.DB_SID,
+      schema: process.env.DB_USERNAME,
       // On ne log pas le password pour des raisons de sécurité
     };
     
@@ -23,7 +23,7 @@ export async function GET() {
     }
 
     // Test simple avec une requête SQL directe
-    const result = await AppDataSource.query('SELECT 1 FROM DUAL');
+    const result = await AppDataSource.query('SELECT 1 FROM dual');
     console.log('✅ Requête test réussie:', result);
 
     // Test pour voir les tables de votre schéma

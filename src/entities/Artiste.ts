@@ -28,13 +28,13 @@ export class Artiste {
   biographie?: string;
 
   // Relationships (inverse side of ManyToMany)
-  @ManyToMany(() => Film, (film) => film.realisateurs)
+  @ManyToMany('Film', (film: Film) => film.realisateurs)
   filmsDiriges?: Relation<Film[]>;
 
-  @ManyToMany(() => Film, (film) => film.scenaristes)
+  @ManyToMany('Film', (film: Film) => film.scenaristes)
   filmsEcrits?: Relation<Film[]>;
 
-  @OneToMany(() => FilmActeur, (fa) => fa.artiste)
+  @OneToMany('FilmActeur', (fa: FilmActeur) => fa.artiste)
   filmsJoues?: Relation<FilmActeur[]>;
 
   @BeforeInsert()

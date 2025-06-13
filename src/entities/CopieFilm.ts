@@ -1,24 +1,31 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
-import { Film } from './Film';
-import { Location } from './Location';
+import {
+	Entity,
+	PrimaryColumn,
+	Column,
+	ManyToOne,
+	JoinColumn,
+	OneToOne,
+} from "typeorm";
+import type { Relation } from "typeorm";
+import { Film } from "./Film";
+import { Location } from "./Location";
 
-@Entity('COPIESFILMS')
+@Entity("COPIESFILMS")
 export class CopieFilm {
-  @PrimaryColumn({ name: 'COPIE_ID', length: 20 })
-  copieId: string;
+	@PrimaryColumn({ name: "COPIE_ID", length: 20 })
+	copieId: string;
 
-  @Column({ name: 'FILM_ID', type: 'number' })
-  filmId: number;
+	@Column({ name: "FILM_ID", type: "number" })
+	filmId: number;
 
-  @Column({ name: 'DISPONIBLE', type: 'number', default: 1 })
-  disponible: number; // 0 or 1
+	@Column({ name: "DISPONIBLE", type: "number", default: 1 })
+	disponible: number; // 0 or 1
 
-  // Relationships
-  @ManyToOne(() => Film, (film) => film.copies)
-  @JoinColumn({ name: 'FILM_ID', referencedColumnName: 'filmId' })
-  film: Relation<Film>;
+	// Relationships
+	@ManyToOne("Film", (film: Film) => film.copies)
+	@JoinColumn({ name: "FILM_ID", referencedColumnName: "filmId" })
+	film: Relation<Film>;
 
-  @OneToOne(() => Location, (location) => location.copieFilm)
-  location?: Relation<Location>;
+	@OneToOne("Location", (location: Location) => location.copieFilm)
+	location?: Relation<Location>;
 }

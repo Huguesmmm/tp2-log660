@@ -15,11 +15,11 @@ export class FilmActeur {
   personnage?: string; // This is why we keep this junction table
 
   // Relationships
-  @ManyToOne(() => Film, (film) => film.acteurs)
+  @ManyToOne('Film', (film: Film) => film.acteurs)
   @JoinColumn({ name: 'FILM_ID', referencedColumnName: 'filmId' })
   film: Relation<Film>;
 
-  @ManyToOne(() => Artiste, (artiste) => artiste.filmsJoues)
+  @ManyToOne('Artiste', (artiste: Artiste) => artiste.filmsJoues)
   @JoinColumn({ name: 'ARTISTE_ID', referencedColumnName: 'artisteId' })
   artiste: Relation<Artiste>;
 }

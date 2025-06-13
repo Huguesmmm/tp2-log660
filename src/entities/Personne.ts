@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert, JoinColumn } from 'typeorm';
 import type { Relation } from 'typeorm';
 import { Client } from './Client';
 import { Employe } from './Employe';
@@ -39,10 +39,10 @@ export class Personne {
   codePostal: string;
 
   // Relationships
-  @OneToOne('Client', (client: Client) => client.personne)
+  @OneToOne('Client', 'personne')
   client?: Relation<Client>;
 
-  @OneToOne('Employe', (employe: Employe) => employe.personne)
+  @OneToOne('Employe', 'personne')
   employe?: Relation<Employe>;
 
   // Handle sequence manually if needed

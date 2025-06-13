@@ -25,7 +25,7 @@ export class CarteCredit {
   @Column({ name: 'CVV', length: 4 })
   cvv: string;
 
-  @OneToOne(() => Client, (client) => client.carteCredit)
+  @OneToOne('Client', (client: Client) => client.carteCredit)
   @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'clientId' })
   client: Relation<Client>;
 
