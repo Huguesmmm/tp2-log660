@@ -23,11 +23,8 @@ export class Personne {
   @Column({ name: 'DATE_NAISSANCE', type: 'date' })
   dateNaissance: Date;
 
-  @Column({ name: 'NO_CIVIQUE', length: 20 })
+  @Column({ name: 'ADRESSE', length: 200 })
   noCivique: string;
-
-  @Column({ name: 'RUE', length: 100 })
-  rue: string;
 
   @Column({ name: 'VILLE', length: 100 })
   ville: string;
