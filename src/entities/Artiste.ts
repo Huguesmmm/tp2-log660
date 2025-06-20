@@ -35,6 +35,7 @@ export class Artiste {
   filmsEcrits?: Relation<Film[]>;
 
   @OneToMany('FilmActeur', (fa: FilmActeur) => fa.artiste)
+
   filmsJoues?: Relation<FilmActeur[]>;
 
   @BeforeInsert()
