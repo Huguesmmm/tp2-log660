@@ -20,6 +20,6 @@ export class Forfait {
   @Column({ name: 'DUREE_MAX_JOURS', type: 'number', nullable: true })
   dureeMaxJours?: number;
 
-  @OneToMany(() => Client, (client) => client.forfait)
+  @OneToMany('Client', (client: Client) => client.forfait)
   clients?: Relation<Client[]>;
 }

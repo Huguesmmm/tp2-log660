@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert, JoinColumn } from 'typeorm';
 import type { Relation } from 'typeorm';
 import { Client } from './Client';
 import { Employe } from './Employe';
@@ -23,11 +23,8 @@ export class Personne {
   @Column({ name: 'DATE_NAISSANCE', type: 'date' })
   dateNaissance: Date;
 
-  @Column({ name: 'NO_CIVIQUE', length: 20 })
+  @Column({ name: 'ADRESSE', length: 200 })
   noCivique: string;
-
-  @Column({ name: 'RUE', length: 100 })
-  rue: string;
 
   @Column({ name: 'VILLE', length: 100 })
   ville: string;
@@ -39,10 +36,10 @@ export class Personne {
   codePostal: string;
 
   // Relationships
-  @OneToOne(() => Client, (client) => client.personne)
+  @OneToOne('Client', 'personne')
   client?: Relation<Client>;
 
-  @OneToOne(() => Employe, (employe) => employe.personne)
+  @OneToOne('Employe', 'personne')
   employe?: Relation<Employe>;
 
   // Handle sequence manually if needed

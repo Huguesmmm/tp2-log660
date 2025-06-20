@@ -22,7 +22,7 @@ export const AppDataSource = new DataSource({
   serviceName: process.env.DB_SERVICE_NAME || 'LOG660',
   username: process.env.DB_USERNAME, // EQUIPEXX
   password: process.env.DB_PASSWORD,
-  schema: process.env.DB_SID, // EQUIPEXX en majuscules
+  schema: process.env.DB_USERNAME, // EQUIPEXX en majuscules (LOG660)
   synchronize: false, // Important: false pour ne pas modifier votre schéma existant
   // logging: process.env.NODE_ENV === 'development',
   logging: true,

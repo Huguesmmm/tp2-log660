@@ -11,6 +11,6 @@ export class Genre {
   nom: string;
 
   // Optional: Inverse relationship
-  @ManyToMany(() => Film, (film) => film.genres)
+  @ManyToMany('Film', (film: Film) => film.genres)
   films?: Relation<Film[]>;
 }

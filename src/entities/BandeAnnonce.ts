@@ -14,7 +14,7 @@ export class BandeAnnonce {
   url: string;
 
   // Relationships
-  @ManyToOne(() => Film, (film) => film.bandesAnnonces)
+  @ManyToOne('Film', (film: Film) => film.bandesAnnonces)
   @JoinColumn({ name: 'FILM_ID', referencedColumnName: 'filmId' })
   film: Relation<Film>;
 

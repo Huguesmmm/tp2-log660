@@ -64,13 +64,13 @@ export class Film {
   scenaristes: Relation<Artiste[]>;
 
   // Keep FilmActeur as junction table (has 'personnage' column)
-  @OneToMany(() => FilmActeur, (fa) => fa.film)
+  @OneToMany('FilmActeur', (fa: FilmActeur) => fa.film)
   acteurs: Relation<FilmActeur[]>;
 
-  @OneToMany(() => CopieFilm, (copie) => copie.film)
+  @OneToMany('CopieFilm', (copie: CopieFilm) => copie.film)
   copies: Relation<CopieFilm[]>;
 
-  @OneToMany(() => BandeAnnonce, (ba) => ba.film)
+  @OneToMany('BandeAnnonce', (ba: BandeAnnonce) => ba.film)
   bandesAnnonces?: Relation<BandeAnnonce[]>;
 
   @BeforeInsert()

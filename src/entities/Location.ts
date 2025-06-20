@@ -24,11 +24,11 @@ export class Location {
   dateRetourReelle?: Date;
 
   // Relationships
-  @ManyToOne(() => Client, (client) => client.locations)
+  @ManyToOne('Client', (client: Client) => client.locations)
   @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'clientId' })
   client: Relation<Client>;
 
-  @OneToOne(() => CopieFilm, (copie) => copie.location)
+  @OneToOne('CopieFilm', (copie: CopieFilm) => copie.location)
   @JoinColumn({ name: 'COPIE_ID', referencedColumnName: 'copieId' })
   copieFilm: Relation<CopieFilm>;
 
