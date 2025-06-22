@@ -9,8 +9,6 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name: string;
-      address: string;
     } & DefaultSession["user"];
   }
   interface User {
@@ -60,7 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = token.idToken as string;
       }
       return session;
     },
