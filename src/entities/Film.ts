@@ -6,6 +6,7 @@ import { CopieFilm } from './CopieFilm';
 import { Pays } from './Pays';
 import { FilmActeur } from './FilmActeur';
 import { BandeAnnonce } from './BandeAnnonce';
+import {FilmScenariste} from "@/entities/Scenariste";
 
 @Entity('FILMS')
 export class Film {
@@ -55,13 +56,9 @@ export class Film {
   })
   realisateurs: Relation<Artiste[]>;
 
-  @ManyToMany(() => Artiste)
-  @JoinTable({
-    name: 'FILM_SCENARISTE',
-    joinColumn: { name: 'FILM_ID', referencedColumnName: 'filmId' },
-    inverseJoinColumn: { name: 'ARTISTE_ID', referencedColumnName: 'artisteId' }
-  })
-  scenaristes: Relation<Artiste[]>;
+
+  @OneToMany('Scenariste', (scenariste: FilmScenariste) => scenariste.film)
+  scenaristes: Relation<FilmScenariste[]>;
 
   // Keep FilmActeur as junction table (has 'personnage' column)
   @OneToMany('FilmActeur', (fa: FilmActeur) => fa.film)
