@@ -101,7 +101,7 @@ export default function PageFilms() {
                     <CardTitle>Recherche de films</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                    <div className=" grid grid-cols-2 grid-flow-col grid-rows-3 gap-4">
+                    <div className=" grid grid-cols-2 grid-flow-col grid-rows-3 gap-x-4">
 
                     {/* Titre */}
                     <div>
@@ -114,7 +114,7 @@ export default function PageFilms() {
                         />
                         <Button onClick={handleAddTitre} variant="secondary">Ajouter</Button>
                     </div>
-                    <div className="flex flex-wrap mt-2">
+                    <div className="flex flex-wrap mt-2 min-h-[30px]">
                         {filter.titres?.map(title => (
                             <Badge key={title} variant="secondary">
                                 {title}
@@ -137,7 +137,7 @@ export default function PageFilms() {
                         />
                         <Button onClick={handleAddActeur} variant="secondary">Ajouter</Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-2 min-h-[30px]">
                         {filter.acteurs?.map(acteur => (
                             <Badge key={acteur} variant="secondary">
                                 {acteur}
@@ -160,7 +160,7 @@ export default function PageFilms() {
                         />
                         <Button onClick={handleAddRealisateur} variant="secondary">Ajouter</Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-2 min-h-[30px]">
                         {filter.realisateurs?.map(realisateur => (
                             <Badge key={realisateur} variant="secondary">
                                 {realisateur}
