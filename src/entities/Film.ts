@@ -6,7 +6,7 @@ import { CopieFilm } from './CopieFilm';
 import { Pays } from './Pays';
 import { FilmActeur } from './FilmActeur';
 import { BandeAnnonce } from './BandeAnnonce';
-import {FilmScenariste} from "@/entities/Scenariste";
+import {FilmScenariste} from "@/entities/FilmScenariste";
 
 @Entity('FILMS')
 export class Film {
@@ -56,8 +56,7 @@ export class Film {
   })
   realisateurs: Relation<Artiste[]>;
 
-
-  @OneToMany('Scenariste', (scenariste: FilmScenariste) => scenariste.film)
+  @OneToMany('FilmScenariste', (fs: FilmScenariste) => fs.film)
   scenaristes: Relation<FilmScenariste[]>;
 
   // Keep FilmActeur as junction table (has 'personnage' column)
