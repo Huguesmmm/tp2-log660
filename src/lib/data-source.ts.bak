@@ -1,0 +1,55 @@
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
+
+// Import de TOUTES tes entités (noms exacts de ton dossier)
+import { Artiste } from '@/entities/Artiste';
+import { BandeAnnonce } from '@/entities/BandeAnnonce';
+import { CarteCredit } from '@/entities/CarteCredit';
+import { Client } from '@/entities/Client';
+import { CopieFilm } from '@/entities/CopieFilm';
+import { Employe } from '@/entities/Employe';
+import { Film } from '@/entities/Film';
+import { FilmActeur } from '@/entities/FilmActeur';
+import { Forfait } from '@/entities/Forfait';
+import { Genre } from '@/entities/Genre';
+import { Location } from '@/entities/Location';
+import { Pays } from '@/entities/Pays';
+import { Personne } from '@/entities/Personne';
+
+export const AppDataSource = new DataSource({
+  type: 'oracle',
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  // ��� connectString plus robuste que host/port séparés
+  connectString: `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_SERVICE_NAME}`,
+  schema: process.env.DB_USERNAME?.toUpperCase(),
+  entities: [
+    Artiste,
+    BandeAnnonce,
+    CarteCredit,
+    Client,
+    CopieFilm,
+    Employe,
+    Film,
+    FilmActeur,
+    Forfait,
+    Genre,
+    Location,
+    Pays,
+    Personne,
+  ],
+  logging: process.env.NODE_ENV === 'development',
+  synchronize: false, // JAMAIS true avec Oracle existant
+});
+
+// Initialisation unique et sécurisée
+let dataSourceInitialized = false;
+
+export async function getDataSource() {
+  if (!dataSourceInitialized) {
+    await AppDataSource.initialize();
+    dataSourceInitialized = true;
+    console.log('✅ Oracle DataSource initialized');
+  }
+  return AppDataSource;
+}

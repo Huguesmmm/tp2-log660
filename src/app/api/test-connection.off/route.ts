@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { AppDataSource } from '@/lib/data-source';
-import * as dotenv from "dotenv";
-dotenv.config();
 
 export async function GET() {
   try {
@@ -42,8 +40,7 @@ export async function GET() {
       config: dbConfig,
       testQuery: result,
       tablesCount: tables.length,
-      tables: tables.slice(0, 10), // Premières 10 tables
-      oracleDate: new Date().toISOString()
+      tables: tables.slice(0, 10) // Premières 10 tables
     });
 
   } catch (error) {
