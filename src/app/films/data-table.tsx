@@ -31,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MovieDetailsDialog } from "@/components/movie-details-dialog";
+import { FilmDTO } from "@/lib/films";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -46,6 +48,8 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [selectedFilm, setSelectedFilm] = React.useState<FilmDTO | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const table = useReactTable({
     data,
@@ -134,6 +138,12 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => {
+                    const film = row.original as FilmDTO;
+                    setSelectedFilm(film);
+                    setIsDialogOpen(true);
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -182,6 +192,25 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
+
+      {/* Movie Details Dialog */}
+      {selectedFilm && (
+        <MovieDetailsDialog
+          film={selectedFilm}
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setSelectedFilm(null);
+            }
+          }}
+          onRentClick={(request) => {
+            // Placeholder for rental functionality
+            console.log("Rent request:", request);
+            alert(`Rental request for film ${request.filmId} by user ${request.userId}`);
+          }}
+        />
+      )}
     </div>
   );
 }
