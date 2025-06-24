@@ -2,8 +2,6 @@ import "server-only";
 import { AppDataSource } from "@/lib/data-source";
 import { Film } from "@/entities/Film";
 
-// Force TypeScript to recognize exports
-
 // DTO for transferring film data to client components
 export interface FilmDTO {
   filmId: number;
@@ -15,7 +13,7 @@ export interface FilmDTO {
   afficheUrl?: string;
 }
 
-// Enhanced DTO for film details dialog
+// DTO for film details dialog
 export interface FilmDetailDTO {
   // Basic info
   filmId: number;
@@ -39,7 +37,7 @@ export interface FilmDetailDTO {
   copiesDisponibles: number;
 }
 
-// Rental interface for location developer
+// interface pour la location
 export interface RentalRequest {
   filmId: number;
   userId: string;
@@ -67,7 +65,7 @@ export interface FilmsResponse {
   totalPages: number;
 }
 
-// Helper function to convert Film entity to DTO
+// funciotn pour convertir le Film en FilmDTO
 function filmToDTO(film: Film): FilmDTO {
   return {
     filmId: film.filmId,
@@ -89,7 +87,6 @@ export async function getFilmDetails(filmId: number): Promise<FilmDetailDTO> {
 
     const filmRepository = AppDataSource.getRepository(Film);
     
-    // Get film with all relations
     const film = await filmRepository
       .createQueryBuilder("film")
       .leftJoinAndSelect("film.genres", "genre")
@@ -106,11 +103,10 @@ export async function getFilmDetails(filmId: number): Promise<FilmDetailDTO> {
       throw new Error(`Film with ID ${filmId} not found`);
     }
 
-    // Calculate availability
     const copiesTotal = film.copies?.length || 0;
     const copiesDisponibles = film.copies?.filter(copie => copie.disponible === 1).length || 0;
 
-    // Transform to DTO
+    // Transformer le film en FilmDetailDTO
     const filmDetail: FilmDetailDTO = {
       filmId: film.filmId,
       titre: film.titre,
@@ -126,15 +122,15 @@ export async function getFilmDetails(filmId: number): Promise<FilmDetailDTO> {
         nom: r.nom 
       })) || [],
       scenaristes: film.scenaristes?.map((fs, index) => ({ 
-        artisteId: index + 1, // Generate fake ID since no real artiste reference
-        nom: fs.nom // Name stored directly in FILM_SCENARISTE table
+        artisteId: index + 1, 
+        nom: fs.nom 
       })) || [],
       acteurs: film.acteurs?.map(fa => ({ 
         artisteId: fa.artiste.artisteId, 
         nom: fa.artiste.nom,
         personnage: fa.personnage
       })) || [],
-      bandesAnnonces: [], // Table doesn't exist in current schema
+      bandesAnnonces: [], 
       copiesTotal,
       copiesDisponibles,
     };
@@ -149,7 +145,6 @@ export async function getFilmDetails(filmId: number): Promise<FilmDetailDTO> {
 
 export async function getFilms(params: FilmSearchParams = {}): Promise<FilmsResponse> {
   try {
-    // Initialize database connection if needed
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
@@ -164,11 +159,9 @@ export async function getFilms(params: FilmSearchParams = {}): Promise<FilmsResp
 
     const filmRepository = AppDataSource.getRepository(Film);
 
-    // Build query with relations - start simple and add one by one
     let queryBuilder = filmRepository
       .createQueryBuilder("film");
 
-    // Add search functionality
     if (search) {
       queryBuilder = queryBuilder.where(
         "LOWER(film.titre) LIKE LOWER(:search)",
@@ -176,23 +169,20 @@ export async function getFilms(params: FilmSearchParams = {}): Promise<FilmsResp
       );
     }
 
-    // Add sorting
     queryBuilder = queryBuilder.orderBy(`film.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC');
 
-    // Get total count for pagination
     const total = await queryBuilder.getCount();
 
     // Add pagination - for server side pagination
     // const offset = (page - 1) * pageSize;
     // queryBuilder = queryBuilder.skip(offset).take(pageSize);
 
-    // Execute query
     const films = await queryBuilder.getMany();
 
     const totalPages = Math.ceil(total / pageSize);
 
     return {
-      data: films.map(filmToDTO), // Convert entities to DTOs
+      data: films.map(filmToDTO), // Convertir les entités en FilmDTO
       total,
       page,
       pageSize,

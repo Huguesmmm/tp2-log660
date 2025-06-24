@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Clock, Globe, Users, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,43 +21,57 @@ interface MovieDetailsDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChange }: MovieDetailsDialogProps) {
+export function MovieDetailsDialog({
+  film,
+  onRentClick,
+  open = false,
+  onOpenChange,
+}: MovieDetailsDialogProps) {
   const [filmDetails, setFilmDetails] = useState<FilmDetailDTO | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFilmDetails = async () => {
-    if (filmDetails && filmDetails.filmId === film.filmId) return; // Already loaded for this film
+    if (filmDetails && filmDetails.filmId === film.filmId) return;
 
     setIsLoading(true);
     setError(null);
-    
+    setFilmDetails(null); // Clear previous details
+
     try {
-      console.log("Fetching details for film:", film.filmId);
       const response = await fetch(`/api/films/${film.filmId}`);
-      console.log("Response status:", response.status);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch film details: ${response.status}`);
       }
-      
+
       const details = await response.json();
-      console.log("Received details:", details);
       setFilmDetails(details);
     } catch (err) {
-      console.error("Error fetching film details:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Reset details when film changes
+  useEffect(() => {
+    if (filmDetails && filmDetails.filmId !== film.filmId) {
+      setFilmDetails(null);
+      setError(null);
+    }
+  }, [film.filmId, filmDetails]);
+
+  // Auto-fetch when dialog opens or film changes
+  useEffect(() => {
+    if (open && film) {
+      fetchFilmDetails();
+    }
+  }, [open, film.filmId]);
+
   const handleOpenChange = (newOpen: boolean) => {
     if (onOpenChange) {
       onOpenChange(newOpen);
-    }
-    if (newOpen) {
-      fetchFilmDetails();
     }
   };
 
@@ -80,20 +94,10 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            {film.titre}
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{film.titre}</DialogTitle>
         </DialogHeader>
-        
-        <ScrollArea className="max-h-[calc(90vh-8rem)]">
-          {/* Debug info */}
-          <div className="mb-4 p-2 bg-gray-100 text-xs">
-            <p>Loading: {isLoading ? "true" : "false"}</p>
-            <p>Error: {error || "none"}</p>
-            <p>FilmDetails: {filmDetails ? "loaded" : "null"}</p>
-            <p>Film ID: {film.filmId}</p>
-          </div>
 
+        <ScrollArea className="max-h-[calc(90vh-8rem)]">
           {isLoading && (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
@@ -108,9 +112,9 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
               <div className="text-center">
                 <p className="text-destructive mb-2">Error loading details</p>
                 <p className="text-muted-foreground text-sm">{error}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={fetchFilmDetails}
                   className="mt-2"
                 >
@@ -126,56 +130,58 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Poster */}
                 <div className="space-y-4">
-                  <div className="relative">
+                  <div className="w-full aspect-[2/3] bg-muted rounded-lg overflow-hidden flex items-center justify-center">
                     {filmDetails.afficheUrl ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={filmDetails.afficheUrl.replace('http://', 'https://')}
-                          alt={`${filmDetails.titre} poster`}
-                          className="w-full rounded-lg shadow-lg"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const fallback = target.parentElement?.querySelector('.fallback-poster') as HTMLElement;
-                            if (fallback) fallback.style.display = 'flex';
-                          }}
-                        />
-                        {/* Fallback for failed image load */}
-                        <div 
-                          className="fallback-poster w-full aspect-[2/3] bg-muted rounded-lg flex items-center justify-center absolute inset-0"
-                          style={{ display: 'none' }}
-                        >
-                          <div className="text-center text-muted-foreground">
-                            <Video className="h-12 w-12 mx-auto mb-2" />
-                            <p className="text-sm">Image failed to load</p>
-                            <p className="text-xs mt-1 opacity-70">IMDb image unavailable</p>
-                          </div>
-                        </div>
-                      </>
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={filmDetails.afficheUrl.replace(
+                          "http://",
+                          "https://",
+                        )}
+                        alt={`${filmDetails.titre} poster`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          const container = target.parentElement;
+                          if (container) {
+                            container.innerHTML = `
+                              <div class="text-center text-muted-foreground">
+                                <svg class="h-12 w-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-sm">Image failed to load</p>
+                                <p class="text-xs mt-1 opacity-70">IMDb image unavailable</p>
+                              </div>
+                            `;
+                          }
+                        }}
+                      />
                     ) : (
-                      <div className="w-full aspect-[2/3] bg-muted rounded-lg flex items-center justify-center">
-                        <div className="text-center text-muted-foreground">
-                          <Video className="h-12 w-12 mx-auto mb-2" />
-                          <p className="text-sm">No poster available</p>
-                        </div>
+                      <div className="text-center text-muted-foreground">
+                        <Video className="h-12 w-12 mx-auto mb-2" />
+                        <p className="text-sm">No poster available</p>
                       </div>
                     )}
                   </div>
-                  
-                  {/* Rental Button */}
+
+                  {/* Bouton pour la location*/}
                   <Button
                     onClick={handleRentClick}
                     disabled={filmDetails.copiesDisponibles === 0}
                     className="w-full"
                     size="lg"
                   >
-                    {filmDetails.copiesDisponibles > 0 ? "Rent Now" : "Not Available"}
+                    {filmDetails.copiesDisponibles > 0
+                      ? "Rent Now"
+                      : "Not Available"}
                   </Button>
-                  
+
                   {/* Availability Info */}
                   <div className="text-center text-sm text-muted-foreground">
-                    <p>{filmDetails.copiesDisponibles} of {filmDetails.copiesTotal} copies available</p>
+                    <p>
+                      {filmDetails.copiesDisponibles} of{" "}
+                      {filmDetails.copiesTotal} copies available
+                    </p>
                   </div>
                 </div>
 
@@ -252,7 +258,10 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
                     </h3>
                     <div className="space-y-1">
                       {filmDetails.realisateurs.map((director) => (
-                        <p key={director.artisteId} className="text-muted-foreground">
+                        <p
+                          key={director.artisteId}
+                          className="text-muted-foreground"
+                        >
                           {director.nom}
                         </p>
                       ))}
@@ -266,7 +275,10 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
                     <h3 className="font-semibold mb-3">Writers</h3>
                     <div className="space-y-1">
                       {filmDetails.scenaristes.map((writer) => (
-                        <p key={writer.artisteId} className="text-muted-foreground">
+                        <p
+                          key={writer.artisteId}
+                          className="text-muted-foreground"
+                        >
                           {writer.nom}
                         </p>
                       ))}
@@ -281,7 +293,10 @@ export function MovieDetailsDialog({ film, onRentClick, open = false, onOpenChan
                   <h3 className="font-semibold mb-3">Cast</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {filmDetails.acteurs.slice(0, 10).map((actor) => (
-                      <div key={actor.artisteId} className="flex justify-between text-sm">
+                      <div
+                        key={actor.artisteId}
+                        className="flex justify-between text-sm"
+                      >
                         <span className="text-muted-foreground">
                           {actor.nom}
                         </span>
