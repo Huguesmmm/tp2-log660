@@ -78,8 +78,8 @@ export async function getFilms(params: FilmSearchParams = {}): Promise<FilmsResp
     const total = await queryBuilder.getCount();
 
     // Add pagination
-    const offset = (page - 1) * pageSize;
-    queryBuilder = queryBuilder.skip(offset).take(pageSize);
+    // const offset = (page - 1) * pageSize;
+    // queryBuilder = queryBuilder.skip(offset).take(pageSize);
 
     // Execute query
     const films = await queryBuilder.getMany();
