@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { authenticate } from "../app/lib/actions";
 
 export default function LoginForm() {
@@ -32,14 +32,12 @@ export default function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* 2. The form's action is now bound to the `formAction` from the hook. */}
         <form action={formAction} className="space-y-4">
-          {/* Username Field */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              name="email" // The 'name' attribute is crucial for FormData
+              name="email" 
               type="email"
               placeholder="user@nextmail.com"
               required
@@ -47,12 +45,11 @@ export default function LoginForm() {
             />
           </div>
 
-          {/* Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
-              name="password" // The 'name' attribute is crucial
+              name="password" 
               type="password"
               placeholder="Enter your password"
               required
@@ -61,7 +58,6 @@ export default function LoginForm() {
             />
           </div>
 
-          {/* Submit Button - State is now driven by `isPending` */}
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? (
               <>
@@ -74,7 +70,6 @@ export default function LoginForm() {
           </Button>
         </form>
 
-        {/* 3. Error messages are displayed cleanly using the `errorMessage` state */}
         {errorMessage && (
           <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
@@ -82,7 +77,6 @@ export default function LoginForm() {
           </Alert>
         )}
 
-        {/* Demo Credentials Info Box (from your original code) */}
         <div className="mt-6 rounded-md border border-blue-200 bg-blue-50 p-3">
           <p className="mb-1 text-sm font-medium text-blue-800">
             Demo Credentials:

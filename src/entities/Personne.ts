@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, BeforeInsert } from 'typeorm';
 import type { Relation } from 'typeorm';
 import { Client } from './Client';
 import { Employe } from './Employe';
