@@ -1,7 +1,8 @@
 import type { Relation } from 'typeorm';
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Client } from './Client';
 import { CopieFilm } from './CopieFilm';
+import { AppDataSource } from '@/lib/data-source';
 
 @Entity('LOCATIONS')
 export class Location {
@@ -11,7 +12,7 @@ export class Location {
   @Column({ name: 'CLIENT_ID', type: 'number' })
   clientId: number;
 
-  @Column({ name: 'COPIE_ID', length: 20, unique: true })
+  @Column({ name: 'COPIE_ID', length: 20 })
   copieId: string;
 
   @Column({ name: 'DATE_LOCATION', type: 'date' })
@@ -24,18 +25,22 @@ export class Location {
   dateRetourReelle?: Date;
 
   // Relationships
-  @ManyToOne('Client', (client: Client) => client.locations)
+  @ManyToOne(() => Client, (client: Client) => client.locations)
   @JoinColumn({ name: 'CLIENT_ID', referencedColumnName: 'clientId' })
   client: Relation<Client>;
 
-  @OneToOne('CopieFilm', (copie: CopieFilm) => copie.location)
+  // Historique des locations : une copie peut avoir plusieurs locations
+  @ManyToOne(() => CopieFilm, (copie: CopieFilm) => copie.locations)
   @JoinColumn({ name: 'COPIE_ID', referencedColumnName: 'copieId' })
   copieFilm: Relation<CopieFilm>;
 
   @BeforeInsert()
   async generateId() {
     if (!this.locationId) {
-      // Handle seq_location_id.NEXTVAL
+      const [{ NEXTVAL }] = await AppDataSource.query(
+        "SELECT seq_location_id.NEXTVAL FROM dual"
+      );
+      this.locationId = Number(NEXTVAL);
     }
   }
 }

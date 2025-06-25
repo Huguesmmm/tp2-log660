@@ -1,3 +1,12 @@
+import oracledb from "oracledb";
+
+// Forcer Oracle Client
+try {
+  oracledb.initOracleClient({ libDir: "C:\oracle\instantclient_19_26" });
+} catch (err) {
+  console.log("Oracle Client déjà initialisé ou erreur:", err.message);
+}
+
 import { DataSource } from 'typeorm';
 import 'reflect-metadata';
 import * as dotenv from "dotenv";

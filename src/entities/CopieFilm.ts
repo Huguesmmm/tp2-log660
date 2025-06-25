@@ -4,7 +4,7 @@ import {
 	Column,
 	ManyToOne,
 	JoinColumn,
-	OneToOne,
+	OneToMany,
 } from "typeorm";
 import type { Relation } from "typeorm";
 import { Film } from "./Film";
@@ -26,6 +26,6 @@ export class CopieFilm {
 	@JoinColumn({ name: "FILM_ID", referencedColumnName: "filmId" })
 	film: Relation<Film>;
 
-	@OneToOne("Location", (location: Location) => location.copieFilm)
-	location?: Relation<Location>;
+	@OneToMany(() => Location, (location: Location) => location.copieFilm)
+	locations?: Relation<Location[]>;
 }
