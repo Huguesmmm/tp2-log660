@@ -29,7 +29,7 @@ export interface FilmDetailDTO {
   pays: { paysId: number; nom: string }[];
   realisateurs: { artisteId: number; nom: string }[];
   scenaristes: { artisteId: number; nom: string }[];
-  acteurs: { artisteId: number; nom: string; personnage?: string }[];
+  acteurs: { artisteId: number; nom: string; personnage?: string, photoUrl?: string }[];
   bandesAnnonces: { bandeAnnonceId: number; url: string }[];
   
   // Rental availability
@@ -128,7 +128,8 @@ export async function getFilmDetails(filmId: number): Promise<FilmDetailDTO> {
       acteurs: film.acteurs?.map(fa => ({ 
         artisteId: fa.artiste.artisteId, 
         nom: fa.artiste.nom,
-        personnage: fa.personnage
+        personnage: fa.personnage,
+        photoUrl: fa.artiste.photoUrl
       })) || [],
       bandesAnnonces: [], 
       copiesTotal,

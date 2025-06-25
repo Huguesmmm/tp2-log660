@@ -92,7 +92,7 @@ export function MovieDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{film.titre}</DialogTitle>
         </DialogHeader>
@@ -291,25 +291,39 @@ export function MovieDetailsDialog({
               {filmDetails.acteurs.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-3">Cast</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {filmDetails.acteurs.slice(0, 10).map((actor) => (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {filmDetails.acteurs.slice(0, 12).map((actor) => (
                       <div
                         key={actor.artisteId}
-                        className="flex justify-between text-sm"
+                        className="flex flex-col items-center text-center space-y-2"
                       >
-                        <span className="text-muted-foreground">
-                          {actor.nom}
-                        </span>
-                        {actor.personnage && (
-                          <span className="text-muted-foreground/70">
-                            as {actor.personnage}
-                          </span>
-                        )}
+                        {/* Photo with fallback */}
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-muted">
+                          {actor.photoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img 
+                              src={actor.photoUrl.replace("http://", "https://")}
+                              alt={actor.nom} 
+                              className="w-full h-full object-cover" 
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Users className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        {/* Name and character */}
+                        <div>
+                          <p className="text-sm font-medium">{actor.nom}</p>
+                          {actor.personnage && (
+                            <p className="text-xs text-muted-foreground">{actor.personnage}</p>
+                          )}
+                        </div>
                       </div>
                     ))}
-                    {filmDetails.acteurs.length > 10 && (
-                      <p className="text-sm text-muted-foreground italic">
-                        ... and {filmDetails.acteurs.length - 10} more
+                    {filmDetails.acteurs.length > 12 && (
+                      <p className="text-sm text-muted-foreground italic col-span-full text-center">
+                        ... and {filmDetails.acteurs.length - 12} more
                       </p>
                     )}
                   </div>
