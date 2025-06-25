@@ -1,7 +1,7 @@
 "use client";
 
-import { DataTable } from "@/app/films/data-table";
-import { columns } from "@/app/films/columns";
+import { columns } from "@/app/dashboard/films/columns";
+import { DataTable } from "@/app/dashboard/films/data-table";
 import { Film } from "@/entities/Film";
 
 interface TableFilmsProps {
