@@ -6,7 +6,7 @@ import { CopieFilm } from './CopieFilm';
 import { Pays } from './Pays';
 import { FilmActeur } from './FilmActeur';
 import { BandeAnnonce } from './BandeAnnonce';
-import {FilmScenariste} from "@/entities/FilmScenariste";
+import { FilmScenariste } from './FilmScenariste';
 
 @Entity('FILMS')
 export class Film {

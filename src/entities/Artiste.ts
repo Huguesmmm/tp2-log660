@@ -12,9 +12,6 @@ export class Artiste {
   @Column({ name: 'NOM', length: 100 })
   nom: string;
 
-  @Column({ name: 'PRENOM', length: 100 })
-  prenom: string;
-
   @Column({ name: 'DATE_NAISSANCE', type: 'date', nullable: true })
   dateNaissance?: Date;
 

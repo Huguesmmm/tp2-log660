@@ -14,7 +14,7 @@ import { BandeAnnonce } from '@/entities/BandeAnnonce';
 import { CarteCredit } from '@/entities/CarteCredit';
 import { FilmActeur } from '@/entities/FilmActeur';
 import { Location } from '@/entities/Location';
-import {FilmScenariste} from "@/entities/FilmScenariste";
+import { FilmScenariste } from '@/entities/FilmScenariste';
 
 export const AppDataSource = new DataSource({
   type: 'oracle',

@@ -1,5 +1,5 @@
 import NextAuth, { type DefaultSession } from "next-auth";
-import { JWT } from "next-auth/jwt";
+// import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { authConfig } from "./auth.config";
@@ -16,11 +16,11 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    idToken?: string;
-  }
-}
+// declare module "next-auth/jwt" {
+//   interface JWT {
+//     idToken?: string;
+//   }
+// }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
