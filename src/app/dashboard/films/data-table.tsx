@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ChevronDown, Search } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -85,6 +86,11 @@ export function DataTable<TData, TValue>({
             className="pl-8"
           />
         </div>
+        <Button variant="outline" className="ml-2" asChild>
+          <Link href="/dashboard/advanced-search">
+            Advanced Search
+          </Link>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
