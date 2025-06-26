@@ -38,7 +38,6 @@ export class RentalService {
         throw new Error("Limite de locations atteinte pour votre forfait");
       }
 
-      // Find available copy with pessimistic lock
       const copyRepository = qr.manager.getRepository(CopieFilm);
       const copy = await copyRepository
         .createQueryBuilder("copie")
@@ -51,7 +50,6 @@ export class RentalService {
         throw new Error("Aucune copie disponible pour ce film");
       }
 
-      // Calculate return date
       const now = new Date();
       const due = client.forfait.dureeMaxJours 
         ? new Date(now.getTime() + client.forfait.dureeMaxJours * 86_400_000) 
@@ -65,7 +63,6 @@ export class RentalService {
         due: due?.toISOString()
       });
 
-      // Create rental record using TypeORM repository.save()
       const locationRepository = qr.manager.getRepository(Location);
       const newLocation = locationRepository.create({
         clientId,
@@ -82,7 +79,6 @@ export class RentalService {
         due: due
       });
 
-      // Save will handle the Oracle sequence automatically
       const location = await locationRepository.save(newLocation);
       
       console.log('After save - location:', {
@@ -93,7 +89,6 @@ export class RentalService {
         dateRetourPrevue: location.dateRetourPrevue
       });
 
-      // FIX: Mark copy as unavailable
       copy.disponible = 0;
       await qr.manager.save(copy);
 
@@ -143,7 +138,6 @@ export class RentalService {
       if (dateRetourReelle) statut = 'RETOURNEE';
       else if (dateRetourPrevue && now > dateRetourPrevue) statut = 'EN_RETARD';
 
-      // Return camelCase format instead of UPPERCASE
       return {
         locationId: location.locationId,
         copieId: location.copieId,
