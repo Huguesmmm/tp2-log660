@@ -16,11 +16,16 @@ export default async function Navbar() {
               LOG660 - TP2
             </span>
           </Link>
-          <nav>
+          <nav className="flex items-center gap-x-6">
             {session?.user && (
-              <Link href="/dashboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                Dashboard
-              </Link>
+              <>
+                <Link href="/dashboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  Dashboard
+                </Link>
+                <Link href="/dashboard/rentals" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  My Rentals
+                </Link>
+              </>
             )}
           </nav>
         </div>

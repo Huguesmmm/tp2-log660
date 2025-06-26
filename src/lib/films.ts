@@ -49,6 +49,49 @@ export interface RentalResult {
   locationId?: number;
 }
 
+// New rental response interfaces
+export interface RentalResponse {
+  success: boolean;
+  message: string;
+  location?: {
+    locationId: number;
+    copieId: string;
+    dateLocation: Date;
+    dateRetourPrevue?: Date;
+  };
+}
+
+export interface RentalError {
+  success: false;
+  error: string;
+}
+
+// Rental management interfaces
+export interface RentalDTO {
+  locationId: number;
+  copieId: string;
+  titre: string;
+  dateLocation: string; // Serialized as ISO string
+  dateRetourPrevue?: string; // Serialized as ISO string
+  dateRetourReelle?: string; // Serialized as ISO string
+  penaliteCourante: number;
+  statut: 'EN_COURS' | 'RETOURNEE' | 'EN_RETARD';
+  afficheUrl?: string;
+  anneeSortie: number;
+}
+
+export interface ReturnResponse {
+  success: boolean;
+  message: string;
+  penalite?: number;
+  result?: string;
+}
+
+export interface ReturnError {
+  success: false;
+  error: string;
+}
+
 export interface FilmSearchParams {
   search?: string;
   page?: number;
