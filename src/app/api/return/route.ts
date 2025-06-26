@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { AppDataSource } from "@/lib/data-source";
+import { Location } from "@/entities/Location";
+import { CopieFilm } from "@/entities/CopieFilm";
+import { Client } from "@/entities/Client";
+import { IsNull } from "typeorm";
 
 export async function POST(req: NextRequest) {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -27,15 +31,19 @@ export async function POST(req: NextRequest) {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    // 3. Marquer la location comme retournée
-    const updated = await queryRunner.query(`
-      UPDATE Locations 
-      SET DATE_RETOUR_REELLE = SYSDATE
-      WHERE COPIE_ID = :copieId 
-        AND DATE_RETOUR_REELLE IS NULL
-    `, [copieId]);
+    const locationRepository = queryRunner.manager.getRepository(Location);
+    const copieRepository = queryRunner.manager.getRepository(CopieFilm);
+    const clientRepository = queryRunner.manager.getRepository(Client);
 
-    if (!updated || updated.rowsAffected === 0) {
+    const location = await locationRepository.findOne({
+      where: {
+        copieId,
+        dateRetourReelle: IsNull()
+      },
+      relations: ['client', 'client.forfait']
+    });
+
+    if (!location) {
       await queryRunner.rollbackTransaction();
       return NextResponse.json({
         success: false,
@@ -43,35 +51,30 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
 
-    // 4. Mettre à jour la disponibilité de la copie
-    await queryRunner.query(`
-      UPDATE COPIESFILMS 
-      SET DISPONIBLE = 1 
-      WHERE COPIE_ID = :copieId
-    `, [copieId]);
+    location.dateRetourReelle = new Date();
+    await locationRepository.save(location);
 
-    // 5. Calculer la pénalité selon le forfait du client
-    const [penaliteRow] = await queryRunner.query(`
-      SELECT 
-        CASE
-          WHEN SYSDATE > l.DATE_RETOUR_PREVUE
-          THEN ROUND(SYSDATE - l.DATE_RETOUR_PREVUE) *
-               CASE c.FORFAIT_CODE 
-                 WHEN 'D' THEN 2    -- Forfait Débutant
-                 WHEN 'I' THEN 1.5  -- Forfait Intermédiaire
-                 WHEN 'A' THEN 1    -- Forfait Avancé
-                 ELSE 2             -- Par défaut
-               END
-          ELSE 0
-        END AS PENALITE
-      FROM Locations l
-      JOIN Clients c ON c.CLIENT_ID = l.CLIENT_ID
-      WHERE l.COPIE_ID = :copieId
-    `, [copieId]);
+    const copie = await copieRepository.findOne({
+      where: { copieId }
+    });
+    if (copie) {
+      copie.disponible = 1;
+      await copieRepository.save(copie);
+    }
+
+    const now = new Date();
+    const dateRetourPrevue = location.dateRetourPrevue;
+    let penalite = 0;
+    
+    if (dateRetourPrevue && now > dateRetourPrevue) {
+      const joursRetard = Math.round((now.getTime() - dateRetourPrevue.getTime()) / (1000 * 60 * 60 * 24));
+      const multiplicateur = location.client.forfait.forfaitCode === 'D' ? 2 
+        : location.client.forfait.forfaitCode === 'I' ? 1.5 
+        : 1;
+      penalite = joursRetard * multiplicateur;
+    }
 
     await queryRunner.commitTransaction();
-
-    const penalite = penaliteRow?.PENALITE || 0;
 
     return NextResponse.json({
       success: true,

@@ -1,60 +1,53 @@
 import { AppDataSource } from "@/lib/data-source";
 import { Client } from "@/entities/Client";
 import { Location } from "@/entities/Location";
+import { Forfait } from "@/entities/Forfait";
+import { CopieFilm } from "@/entities/CopieFilm";
+import { Film } from "@/entities/Film";
+import { IsNull } from "typeorm";
 
-/**
- * Service – Cas 4 : location de films
- * -----------------------------------------------------------
- * • Toute la logique est encapsulée dans une transaction.
- * • Le trigger `trg_stock_location` se charge de passer la copie
- *   à `DISPONIBLE = 0`; on ne le fait donc plus ici.
- * • Sélection de la copie protégée par `FOR UPDATE SKIP LOCKED`
- *   pour éviter les problèmes de concurrence (ORA‑00001 / 20001).
- * • **INSERT** effectué avec **TypeORM** (plus de SQL brut).
- */
 export class RentalService {
-  /**
-   * Loue une copie disponible d'un film pour un client
-   */
   public static async rentFilm(clientId: number, filmId: number): Promise<Location> {
     const ds = await (AppDataSource.isInitialized ? AppDataSource : AppDataSource.initialize());
     const qr = ds.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
-      const [forfaitRow] = await qr.manager.query(
-        `SELECT f.locations_max AS max_loc,
-                f.duree_max_jours AS max_days
-           FROM Clients c JOIN Forfait f ON f.forfait_code = c.forfait_code
-          WHERE c.client_id = :clientId`,
-        { clientId } as any
-      );
-      if (!forfaitRow) throw new Error("Client introuvable ou forfait inexistant");
-      const { MAX_LOC, MAX_DAYS } = forfaitRow;
-      const [{ ACTIVE }] = await qr.manager.query(
-        `SELECT COUNT(*) AS active
-           FROM Locations
-          WHERE client_id = :clientId
-            AND date_retour_reelle IS NULL`,
-        { clientId } as any
-      );
-      if (ACTIVE >= MAX_LOC) throw new Error("Limite de locations atteinte pour votre forfait.");
-      const [copyRow] = await qr.manager.query(
-        `SELECT copie_id
-           FROM CopiesFilms
-          WHERE film_id = :filmId
-            AND disponible = 1
-          FOR UPDATE SKIP LOCKED
-          FETCH FIRST 1 ROWS ONLY`,
-        { filmId } as any
-      );
-      if (!copyRow) throw new Error("Aucune copie disponible pour ce film.");
-      const copieId: string = copyRow.COPIE_ID;
+      const clientRepository = qr.manager.getRepository(Client);
+      const client = await clientRepository.findOne({
+        where: { clientId },
+        relations: ['forfait']
+      });
+      if (!client?.forfait) throw new Error("Client introuvable ou forfait inexistant");
+      
+      const locationsActives = await qr.manager.count(Location, {
+        where: {
+          clientId,
+          dateRetourReelle: IsNull()
+        }
+      });
+      if (locationsActives >= client.forfait.locationsMax) {
+        throw new Error("Limite de locations atteinte pour votre forfait.");
+      }
+
+      const copyRepository = qr.manager.getRepository(CopieFilm);
+      const copy = await copyRepository
+        .createQueryBuilder("copie")
+        .where("copie.filmId = :filmId", { filmId })
+        .andWhere("copie.disponible = 1")
+        .setLock("pessimistic_write")
+        .getOne();
+      
+      if (!copy) throw new Error("Aucune copie disponible pour ce film.");
+      
       const now = new Date();
-      const due = MAX_DAYS ? new Date(now.getTime() + MAX_DAYS * 86_400_000) : null;
+      const due = client.forfait.dureeMaxJours 
+        ? new Date(now.getTime() + client.forfait.dureeMaxJours * 86_400_000) 
+        : null;
+      
       const location = qr.manager.create(Location, {
         clientId,
-        copieId,
+        copieId: copy.copieId,
         dateLocation: now,
         dateRetourPrevue: due ?? undefined,
       });
@@ -69,54 +62,75 @@ export class RentalService {
     }
   }
 
-  /**
-   * Renvoie les locations d'un client avec pénalité courante.
-   */
   public static async getClientRentals(clientId: number) {
     const ds = await (AppDataSource.isInitialized ? AppDataSource : AppDataSource.initialize());
-    return ds.query(
-      `SELECT l.location_id,
-              l.copie_id,
-              l.date_location,
-              l.date_retour_prevue,
-              l.date_retour_reelle,
-              f.titre,
-              f.annee_sortie,
-              f.affiche_url,
-              CASE WHEN l.date_retour_reelle IS NULL AND l.date_retour_prevue < SYSDATE THEN
-                   ROUND(SYSDATE - l.date_retour_prevue) *
-                   CASE c.forfait_code WHEN 'D' THEN 2 WHEN 'I' THEN 1.5 ELSE 1 END
-                   ELSE 0 END AS penalite_courante,
-              CASE WHEN l.date_retour_reelle IS NOT NULL THEN 'RETOURNEE'
-                   WHEN l.date_retour_prevue < SYSDATE THEN 'EN_RETARD'
-                   ELSE 'EN_COURS' END AS statut
-         FROM Locations l
-         JOIN CopiesFilms cf ON cf.copie_id = l.copie_id
-         JOIN Films f        ON f.film_id   = cf.film_id
-         JOIN Clients c      ON c.client_id = l.client_id
-        WHERE l.client_id = :clientId
-        ORDER BY l.date_location DESC`,
-      { clientId } as any
-    );
+    const locationRepository = ds.getRepository(Location);
+    
+    const locations = await locationRepository
+      .createQueryBuilder("location")
+      .leftJoinAndSelect("location.client", "client")
+      .leftJoinAndSelect("location.copieFilm", "copie")
+      .leftJoinAndSelect("copie.film", "film")
+      .leftJoinAndSelect("client.forfait", "forfait")
+      .where("location.clientId = :clientId", { clientId })
+      .orderBy("location.dateLocation", "DESC")
+      .getMany();
+
+    return locations.map(location => {
+      const now = new Date();
+      const dateRetourPrevue = location.dateRetourPrevue;
+      const dateRetourReelle = location.dateRetourReelle;
+      
+      let penaliteCourante = 0;
+      if (!dateRetourReelle && dateRetourPrevue && now > dateRetourPrevue) {
+        const joursRetard = Math.round((now.getTime() - dateRetourPrevue.getTime()) / (1000 * 60 * 60 * 24));
+        const multiplicateur = location.client.forfait.forfaitCode === 'D' ? 2 
+          : location.client.forfait.forfaitCode === 'I' ? 1.5 
+          : 1;
+        penaliteCourante = joursRetard * multiplicateur;
+      }
+      
+      let statut = 'EN_COURS';
+      if (dateRetourReelle) statut = 'RETOURNEE';
+      else if (dateRetourPrevue && now > dateRetourPrevue) statut = 'EN_RETARD';
+      
+      return {
+        location_id: location.locationId,
+        copie_id: location.copieId,
+        date_location: location.dateLocation,
+        date_retour_prevue: location.dateRetourPrevue,
+        date_retour_reelle: location.dateRetourReelle,
+        titre: location.copieFilm.film.titre,
+        annee_sortie: location.copieFilm.film.anneeSortie,
+        affiche_url: location.copieFilm.film.afficheUrl,
+        penalite_courante: penaliteCourante,
+        statut: statut
+      };
+    });
   }
 
-  /**
-   * Retourne un snapshot du quota restant.
-   */
   public static async checkClientQuota(clientId: number) {
     const ds = await (AppDataSource.isInitialized ? AppDataSource : AppDataSource.initialize());
-    const [row] = await ds.query(
-      `SELECT f.locations_max,
-              (SELECT COUNT(*) FROM Locations WHERE client_id = :cli AND date_retour_reelle IS NULL) AS active
-         FROM Clients c JOIN Forfait f ON f.forfait_code = c.forfait_code
-        WHERE c.client_id = :cli`,
-      { cli: clientId } as any
-    );
-    if (!row) throw new Error("Client introuvable.");
+    const clientRepository = ds.getRepository(Client);
+    
+    const client = await clientRepository.findOne({
+      where: { clientId },
+      relations: ['forfait']
+    });
+    
+    if (!client) throw new Error("Client introuvable.");
+    
+    const locationsActives = await ds.getRepository(Location).count({
+      where: {
+        clientId,
+        dateRetourReelle: IsNull()
+      }
+    });
+    
     return {
-      locationsActives: row.ACTIVE,
-      locationsMax: row.LOCATIONS_MAX,
-      canRent: row.ACTIVE < row.LOCATIONS_MAX,
+      locationsActives,
+      locationsMax: client.forfait.locationsMax,
+      canRent: locationsActives < client.forfait.locationsMax,
     };
   }
 }
