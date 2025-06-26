@@ -24,20 +24,6 @@ export default async function DashboardPage() {
 							</div>
 						</Card>
 					</Link>
-					<Link href="/dashboard/rented-films">
-						<Card className="hover:bg-muted/50 transition-colors sm:min-w-[250px] lg:min-h-44 lg:min-w-[300px]">
-							<CardHeader className="flex flex-row items-center justify-between">
-								<CardTitle className="text-xl font-bold">Mes Locations</CardTitle>
-								<FilmIcon className="h-7 w-7 text-muted-foreground" />
-							</CardHeader>
-							<div className="flex flex-row justify-between px-6 pt-0">
-								<p className="col-span-1 text-s font-medium text-muted-foreground">
-									Visionnez vos locations
-								</p>
-								<span className="text-s text-muted-foreground"></span>
-							</div>
-						</Card>
-					</Link>
 				</div>
 			</div>
 		</div>
