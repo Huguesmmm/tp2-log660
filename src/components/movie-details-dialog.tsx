@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Calendar, Clock, Globe, Users, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FilmDTO, FilmDetailDTO, RentalRequest } from "@/lib/films";
+import { FilmDTO, FilmDetailDTO, RentalRequest, RentalResponse, RentalError } from "@/lib/films";
+import { toast } from "sonner";
 
 interface MovieDetailsDialogProps {
   film: FilmDTO;
@@ -30,9 +31,10 @@ export function MovieDetailsDialog({
   const [filmDetails, setFilmDetails] = useState<FilmDetailDTO | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRenting, setIsRenting] = useState(false);
 
-  const fetchFilmDetails = async () => {
-    if (filmDetails && filmDetails.filmId === film.filmId) return;
+  const fetchFilmDetails = useCallback(async (force = false) => {
+    if (!force && filmDetails && filmDetails.filmId === film.filmId) return;
 
     setIsLoading(true);
     setError(null);
@@ -52,7 +54,7 @@ export function MovieDetailsDialog({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [film.filmId, filmDetails]);
 
   // Reset details when film changes
   useEffect(() => {
@@ -67,7 +69,7 @@ export function MovieDetailsDialog({
     if (open && film) {
       fetchFilmDetails();
     }
-  }, [open, film.filmId]);
+  }, [open, film, fetchFilmDetails]);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (onOpenChange) {
@@ -75,12 +77,53 @@ export function MovieDetailsDialog({
     }
   };
 
-  const handleRentClick = () => {
-    if (filmDetails && onRentClick) {
-      onRentClick({
-        filmId: filmDetails.filmId,
-        userId: "current-user", // This will be replaced with actual session user
+  const handleRentClick = async () => {
+    if (!filmDetails || isRenting) return;
+
+    setIsRenting(true);
+
+    try {
+      const response = await fetch('/api/rent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filmId: filmDetails.filmId,
+        }),
       });
+
+      const data: RentalResponse | RentalError = await response.json();
+
+      if (data.success) {
+        const successData = data as RentalResponse;
+        toast.success(successData.message, {
+          description: `Copy ${successData.location?.copieId} rented successfully`,
+        });
+        
+        // Refresh film details to update availability
+        await fetchFilmDetails(true);
+        
+        // Call the original onRentClick if provided (for backward compatibility)
+        if (onRentClick) {
+          onRentClick({
+            filmId: filmDetails.filmId,
+            userId: "current-user", // This gets the real user from session in the API
+          });
+        }
+      } else {
+        const errorData = data as RentalError;
+        toast.error("Rental failed", {
+          description: errorData.error,
+        });
+      }
+    } catch (error) {
+      console.error("Rental error:", error);
+      toast.error("Rental failed", {
+        description: "Network error occurred",
+      });
+    } finally {
+      setIsRenting(false);
     }
   };
 
@@ -115,7 +158,7 @@ export function MovieDetailsDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={fetchFilmDetails}
+                  onClick={() => fetchFilmDetails(true)}
                   className="mt-2"
                 >
                   Retry
@@ -167,11 +210,13 @@ export function MovieDetailsDialog({
                   {/* Bouton pour la location*/}
                   <Button
                     onClick={handleRentClick}
-                    disabled={filmDetails.copiesDisponibles === 0}
+                    disabled={filmDetails.copiesDisponibles === 0 || isRenting}
                     className="w-full"
                     size="lg"
                   >
-                    {filmDetails.copiesDisponibles > 0
+                    {isRenting
+                      ? "Renting..."
+                      : filmDetails.copiesDisponibles > 0
                       ? "Rent Now"
                       : "Not Available"}
                   </Button>

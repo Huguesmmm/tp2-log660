@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -14,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ChevronDown, Search } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,28 +31,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MovieDetailsDialog } from "@/components/movie-details-dialog";
-import { FilmDTO } from "@/lib/films";
+import { RentalDTO, ReturnResponse, ReturnError } from "@/lib/films";
+import { createColumns } from "./columns";
+import { toast } from "sonner";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface RentalsDataTableProps {
+  rentals: RentalDTO[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function RentalsDataTable({ rentals }: RentalsDataTableProps) {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selectedFilm, setSelectedFilm] = React.useState<FilmDTO | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [returningItems, setReturningItems] = React.useState<Set<number>>(new Set());
+
+  const handleReturn = async (copieId: string, locationId: number) => {
+    setReturningItems(prev => new Set(prev).add(locationId));
+
+    try {
+      const response = await fetch('/api/return', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ copieId }),
+      });
+
+      const data: ReturnResponse | ReturnError = await response.json();
+
+      if (data.success) {
+        const successData = data as ReturnResponse;
+        toast.success(successData.message, {
+          description: successData.penalite && successData.penalite > 0 
+            ? `Penalty applied: $${successData.penalite}`
+            : "Film returned successfully",
+        });
+        
+        // Refresh the page to update the rentals list
+        router.refresh();
+      } else {
+        const errorData = data as ReturnError;
+        toast.error("Return failed", {
+          description: errorData.error,
+        });
+      }
+    } catch (error) {
+      console.error("Return error:", error);
+      toast.error("Return failed", {
+        description: "Network error occurred",
+      });
+    } finally {
+      setReturningItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(locationId);
+        return newSet;
+      });
+    }
+  };
+
+  const isReturning = (locationId: number) => returningItems.has(locationId);
+
+  const columns = createColumns({ onReturn: handleReturn, isReturning });
 
   const table = useReactTable({
-    data,
+    data: rentals,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -74,27 +118,42 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const activeRentals = rentals.filter(r => !r.dateRetourReelle);
+  const lateRentals = rentals.filter(r => !r.dateRetourReelle && r.statut === 'EN_RETARD');
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card text-card-foreground rounded-lg border p-4">
+          <div className="text-2xl font-bold">{activeRentals.length}</div>
+          <p className="text-sm text-muted-foreground">Active Rentals</p>
+        </div>
+        <div className="bg-card text-card-foreground rounded-lg border p-4">
+          <div className="text-2xl font-bold text-red-600">{lateRentals.length}</div>
+          <p className="text-sm text-muted-foreground">Late Returns</p>
+        </div>
+        <div className="bg-card text-card-foreground rounded-lg border p-4">
+          <div className="text-2xl font-bold">{rentals.length}</div>
+          <p className="text-sm text-muted-foreground">Total Rentals</p>
+        </div>
+      </div>
+
+      {/* Filters */}
       <div className="flex items-center py-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher des films..."
+            placeholder="Search films..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(String(event.target.value))}
             className="pl-8"
           />
         </div>
-        <Button variant="outline" className="ml-2" asChild>
-          <Link href="/dashboard/advanced-search">
-            Advanced Search
-          </Link>
-        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
+              Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -118,6 +177,8 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -144,12 +205,6 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => {
-                    const film = row.original as FilmDTO;
-                    setSelectedFilm(film);
-                    setIsDialogOpen(true);
-                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -167,17 +222,19 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucun resultat.
+                  No rentals found.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) selectionnee(s).
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="space-x-2">
           <Button
@@ -186,7 +243,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Precedent
+            Previous
           </Button>
           <Button
             variant="outline"
@@ -194,28 +251,10 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Suivant
+            Next
           </Button>
         </div>
       </div>
-
-      {/* Movie Details Dialog */}
-      {selectedFilm && (
-        <MovieDetailsDialog
-          film={selectedFilm}
-          open={isDialogOpen}
-          onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              setSelectedFilm(null);
-            }
-          }}
-          onRentClick={(request) => {
-            // Rental is now handled directly in the dialog
-            console.log("Rent request:", request);
-          }}
-        />
-      )}
     </div>
   );
 }

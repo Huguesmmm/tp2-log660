@@ -1,5 +1,6 @@
 import type { Relation } from 'typeorm';
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
+import { AppDataSource } from '@/lib/data-source';
 import { Client } from './Client';
 import { CopieFilm } from './CopieFilm';
 
@@ -35,7 +36,9 @@ export class Location {
   @BeforeInsert()
   async generateId() {
     if (!this.locationId) {
-      // Handle seq_location_id.NEXTVAL
+      // Get next value from Oracle sequence
+      const result = await AppDataSource.query('SELECT seq_location_id.NEXTVAL as id FROM dual');
+      this.locationId = result[0].ID;
     }
   }
 }
